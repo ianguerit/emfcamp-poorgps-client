@@ -1,3 +1,5 @@
+# This is likely not yet working
+
 import app
 
 from events.input import Buttons, BUTTON_TYPES
@@ -6,8 +8,28 @@ from tildagonos import tildagonos, led_colours
 import wifi
 import network
 import binascii
+import urequests as requests
+import json
+import time
+from BLEManager import BLEManager
 
+# --- GLOBAL STATE ---
+
+# Menu options
 main_menu_items = ["Map", "Calibrate", "Debug"]
+
+# Stores the latest incoming GPS coordinates received from BLE
+latest_gps = {
+    "latitude": None,
+    "longitude": None,
+    "accuracy": None,
+    "updated_at": 0
+}
+
+# Global instance reference for the callback to respond to
+ble_mgr = None
+# Dynamically loaded on startup to act as unique identifier
+DEVICE_ID = "00:00:00:00:00:00"
 
 class PoorGPS(app.App):
     def __init__(self):
