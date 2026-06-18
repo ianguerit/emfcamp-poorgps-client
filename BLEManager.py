@@ -1,5 +1,47 @@
-import bluetooth
-from micropython import const
+try:
+    from micropython import const
+except ImportError:
+    # Desktop simulator mock for micropython.const
+    def const(x):
+        return x
+
+try:
+    import ubluetooth as bluetooth
+except ImportError:
+    try:
+        import bluetooth
+    except ImportError:
+        # Fallback dummy implementation to prevent crashes in the desktop simulator
+        print("\n[BLE SIMULATOR] Bluetooth hardware not found. Initializing Emulator Mock-up...")
+        
+        class DummyBluetooth:
+            class UUID:
+                def __init__(self, value):
+                    self.value = value
+                def __bytes__(self):
+                    # Dummy 16-byte payload for simulation compatibility
+                    return b"\x00" * 16
+            
+            class BLE:
+                def __init__(self):
+                    self._handler = None
+                def active(self, state=None):
+                    return True
+                def irq(self, handler):
+                    self._handler = handler
+                def gatts_register_services(self, services):
+                    # Returns mock nested handles to successfully unpack ((tx, rx),)
+                    return (((100, 200),),)
+                def gatts_set_buffer(self, handle, size, append=False):
+                    pass
+                def gatts_read(self, handle):
+                    return b""
+                def gap_advertise(self, interval_us, adv_data=None, resp_data=None):
+                    pass
+                def gatts_notify(self, conn_handle, tx_handle, msg):
+                    print(f"[BLE SIMULATOR] Virtual Tx Notify: {msg}")
+                    
+        bluetooth = DummyBluetooth()
 
 # --- BLE SYSTEM DEFINITIONS (Nordic UART Service - NUS) ---
 _IRQ_CENTRAL_CONNECT = const(1)
@@ -48,8 +90,9 @@ def advertising_payload(name=None, services=None, show_flags=True):
 class BLEManager:
     """
     Handles BLE Peripheral startup, connection monitoring, and reception callbacks.
+    Compatible with standard MicroPython 'bluetooth', badge 'ubluetooth', and desktop simulators.
     """
-    def __init__(self, name="ESP32-S3-Scanner", on_gps_received=None):
+    def __init__(self, name="ESP32-S3-Scanner", on_state_change=None, on_gps_received=None):
         self._ble = bluetooth.BLE()
         self._ble.active(True)
         self._ble.irq(self._irq)
@@ -61,6 +104,7 @@ class BLEManager:
         self._ble.gatts_set_buffer(self._rx_handle, 100, True)
         
         self._connections = set()
+        self._on_state_change = on_state_change
         self._on_gps_received = on_gps_received
         self._name = name
         
@@ -74,11 +118,15 @@ class BLEManager:
             conn_handle, _, _ = data
             print("\n[BLE] Client connected (Handle: {})".format(conn_handle))
             self._connections.add(conn_handle)
+            if self._on_state_change:
+                self._on_state_change("connect")
         elif event == _IRQ_CENTRAL_DISCONNECT:
             conn_handle, _, _ = data
             print("\n[BLE] Client disconnected. Restarting advertising...")
             if conn_handle in self._connections:
                 self._connections.remove(conn_handle)
+            if self._on_state_change:
+                self._on_state_change("disconnect")
             self.advertise()
         elif event == _IRQ_GATTS_WRITE:
             conn_handle, value_handle = data
@@ -99,5 +147,3 @@ class BLEManager:
                 self._ble.gatts_notify(conn_handle, self._tx_handle, msg)
             except Exception as e:
                 print("[BLE] Send failed:", e)
-
-

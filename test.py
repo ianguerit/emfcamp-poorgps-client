@@ -257,7 +257,7 @@ def main():
     print("[SYSTEM] Unique Device Identifier Locked: {}".format(DEVICE_ID))
 
     # Start the BLE Peripheral Server first (Clients can connect even during Wi-Fi setup)
-    ble_mgr = BLEManager(name="ESP32-S3-Scanner", on_gps_received=handle_incoming_gps_data)
+    ble_mgr = BLEManager(name="ESP32-S3-Scanner", on_state_change=None, on_gps_received=handle_incoming_gps_data)
     
     # Establish Wi-Fi Connection
     wlan = connect_to_wifi()
