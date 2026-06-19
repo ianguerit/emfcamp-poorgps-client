@@ -12,6 +12,7 @@ import binascii
 import urequests as requests
 import json
 import time
+import math
 import sys
 import os
 from .Location import Location
@@ -149,13 +150,13 @@ class PoorGPS(app.App):
 
         ctx.font_size = 16
         x = ctx.text_width("Accuracy")
-        ctx.move_to( (x / 2) * -1, 20)
+        ctx.move_to( (x / 2) * -1, 0)
         ctx.text("Accuracy")
         x = ctx.text_width("Source")
-        ctx.move_to( (x / 2) * -1, 40)
+        ctx.move_to( (x / 2) * -1, 20)
         ctx.text("Source")
         x = ctx.text_width("UPDATED")
-        ctx.move_to( (x / 2) * -1, 60)
+        ctx.move_to( (x / 2) * -1, 40)
         ctx.text("UPDATED")
 
         ctx.restore()
@@ -277,12 +278,58 @@ class PoorGPS(app.App):
         ctx.restore()
 
 
+
+    def draw_arrow(self,ctx, x, y, size=80, direction="right"):
+        """
+        Draws a left or right arrow inside a framing hexagon using ctx vector graphics.
+        x, y: Center coordinates of the hexagon.
+        size: The total diameter/width of the hexagon.
+        direction: "right" or "left"
+        color: A tuple of (R, G, B, A) for the lines.
+        """
+        ctx.save()
+        ctx.translate(x, y)
+        
+        # Configure line styles
+        ctx.line_width = max(2, size // 20)
+        ctx.line_join = "round"
+        ctx.line_cap = "round"
+        
+        # --- DRAW THE ARROW (CHEVRON) ---
+        # Scale arrow bounds relative to hexagon size
+        arrow_width = size * 0.18
+        arrow_height = size * 0.25
+        
+        # Determine horizontal flip based on direction string
+        # If "left", we multiply X coordinates by -1
+        flip = -1 if direction.lower() == "left" else 1
+        
+        ctx.begin_path()
+        # Start at top-left of the arrow, go to the point on the right, down to bottom-left
+        ctx.move_to(-arrow_width * flip, -arrow_height)
+        ctx.line_to(arrow_width * flip, 0)
+        ctx.line_to(-arrow_width * flip, arrow_height)
+        
+        ctx.stroke()
+        ctx.restore()
+
+
     def draw_radar(self, ctx):
 
         ctx.save()
+
+        # Clear background
         ctx.rgb(0, 0.03, 0.19).rectangle(-120, -120, 240, 240).fill()
 
+        ctx.rgb(0.5, 0.5, 0.5)
+        # Minimise
+        ctx.font = "Material Icons"
+        ctx.font_size = 18
+        ctx.move_to(-90, -55)
+        ctx.text("\ue879") # Close
+
         ctx.rgb(1, 1, 1)
+        ctx.font = "Camp Font 1"
         ctx.font_size = 14
         hour, minute, second = time.localtime()[3:6]
         timestamp = f"{hour:02d}:{minute:02d}:{second:02d}"
@@ -302,7 +349,7 @@ class PoorGPS(app.App):
             case "blue":
                 ctx.rgb(0.18, 0.68, 0.85);
 
-        show_location = True
+        show_standard = True
         
         match self.location.current_source:
             case "wifi":
@@ -330,7 +377,7 @@ class PoorGPS(app.App):
                     #ctx.text("BLE")
                     # Actual image is 162x162, but this doesn't fit 
                     ctx.image(ASSET_PATH + "qrcode.png", -60, -60, 120, 120)
-                    show_location = False
+                    show_standard = False
                     #ctx.text("\e1aa") # BLE connecting
 
         ctx.font = "Camp Font 1"
@@ -354,7 +401,7 @@ class PoorGPS(app.App):
             updated_at = formatted_time
             ctx.rgb(1, 1, 1)
 
-        if show_location:
+        if show_standard:
             ctx.font_size = 18
             x_lat = ctx.text_width(lat)
             ctx.move_to(x_lat * -1 - 5,-20)
@@ -366,16 +413,20 @@ class PoorGPS(app.App):
 
             ctx.font_size = 16
             x = ctx.text_width(accuracy)
-            ctx.move_to( (x / 2) * -1, 20)
+            ctx.move_to( (x / 2) * -1, 0)
             ctx.text(accuracy)
             x = ctx.text_width(source)
-            ctx.move_to( (x / 2) * -1, 40)
+            ctx.move_to( (x / 2) * -1, 20)
             ctx.text(source)
             x = ctx.text_width(updated_at)
-            ctx.move_to( (x / 2) * -1, 60)
+            ctx.move_to( (x / 2) * -1, 40)
             ctx.text(updated_at)
 
-                
+            ctx.rgb(0.5, 0.5, 0.5)
+
+            self.draw_arrow(ctx, -80, 60, 30, "left")
+            self.draw_arrow(ctx, 80, 60, 30, "right")
+
         ctx.restore()
 
 
