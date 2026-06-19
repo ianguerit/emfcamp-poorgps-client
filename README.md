@@ -13,4 +13,4 @@ This will pull from badge settings.
 
 `API_ENDPOINT` currently points at my server - you are welcome to use, but note data may be cleared.
 
-Once you have it loaded / running, you can connect to BLE with the companion web page https://emfcamp.illumo.dev/scanner to help with calibration (combine your mobile GPS with the data collected to provide a baseline).
+Once you have it loaded / running, you can connect to BLE with the companion web page https://poorgps.emfcamp.illumo.dev/calibrate to help with calibration (combine your mobile GPS with the data collected to provide a baseline).

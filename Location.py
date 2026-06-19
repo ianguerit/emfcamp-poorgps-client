@@ -6,6 +6,8 @@ import ujson as json
 import utime
 from .BLEManager import BLEManager
 
+API_ENDPOINT = "http://poorgps.emfcamp.illumo.dev/api/"
+
 class Location:
     """
     Handles managing location
@@ -14,7 +16,7 @@ class Location:
         self.available_sources = [
             "wifi", # Surrounding WiFi hotspots
             "gps_hexpansion", # GPS Hexpansion (todo)
-            "ble_pwa" # BLE PWA app hosted at https://emfcamp.illumo.dev/scanner
+            "ble_pwa" # BLE PWA app hosted at https://poorgps.emfcamp.illumo.dev/calibrate
         ]
         self.current_source = "wifi"
         self.current_state = "red" # amber or #green

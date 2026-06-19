@@ -98,8 +98,10 @@ class PoorGPS(app.App):
             else:
                 self.location.toggle_source()
 
-    #def background_update
-    # Every 0.05 seconds
+    async def background_task(self):
+        while True:
+            await asyncio.sleep(5)
+            self.location.update_location()
 
     def draw(self, ctx):
         clear_background(ctx)
