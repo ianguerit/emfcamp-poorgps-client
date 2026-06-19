@@ -14,9 +14,9 @@ class Location:
         self.available_sources = [
             "wifi", # Surrounding WiFi hotspots
             "gps_hexpansion", # GPS Hexpansion (todo)
-            "bluetooth_pwa" # BLE PWA app hosted at https://emfcamp.illumo.dev/scanner
+            "ble_pwa" # BLE PWA app hosted at https://emfcamp.illumo.dev/scanner
         ]
-        self.current_source = "wifi_hotspot"
+        self.current_source = "wifi"
         self.current_state = "red" # amber or #green
 
         self.current_location = {
@@ -58,7 +58,7 @@ class Location:
             #    # Handled in update
             #case "gps_hexpansion":
             #    # Not yet implemented
-            case "bluetooth_pwa":
+            case "ble_pwa":
                 self.ble_mgr = None
 
         self.current_source = source
@@ -70,7 +70,7 @@ class Location:
             #    # Handled in update
             #case "gps_hexpansion":
             #    # Not yet implemented
-            case "bluetooth_pwa":
+            case "ble_pwa":
                 self.ble_mgr = BLEManager(name="Poor GPS", on_gps_received=self.handle_incoming_gps_data)
 
 

@@ -31,7 +31,7 @@ except ImportError:
                     self._handler = handler
                 def gatts_register_services(self, services):
                     # Returns mock nested handles to successfully unpack ((tx, rx),)
-                    return (((100, 200),),)
+                    return ((100, 200),)
                 def gatts_set_buffer(self, handle, size, append=False):
                     pass
                 def gatts_read(self, handle):
